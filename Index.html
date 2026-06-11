@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Word Repeater</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: #1a1a2e; color: white; padding: 20px; }
+    h1 { margin-bottom: 24px; font-size: 28px; color: #e94560; }
+
+    .card { background: #16213e; border-radius: 12px; padding: 24px; width: 100%; max-width: 480px; }
+
+    input { width: 100%; padding: 10px 14px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #2a2a5a; background: #0f3460; color: white; font-size: 16px; }
+    input::placeholder { color: #aaa; }
+    input:focus { outline: none; border-color: #e94560; }
+
+    .btn-row { display: flex; gap: 10px; }
+    button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; transition: 0.2s; }
+    .btn-repeat { background: #e94560; color: white; }
+    .btn-repeat:hover { background: #c73652; }
+    .btn-copy { background: #0f3460; color: white; border: 1px solid #2a2a5a; }
+    .btn-copy:hover { background: #1a4a80; }
+    .btn-back { background: #0f3460; color: white; border: 1px solid #2a2a5a; }
+    .btn-back:hover { background: #1a4a80; }
+
+    #output { margin-top: 16px; font-size: 18px; word-break: break-word; background: #0f3460; padding: 14px; border-radius: 8px; min-height: 50px; line-height: 1.6; display: none; }
+
+    .section-title { font-size: 13px; color: #aaa; margin-bottom: 8px; margin-top: 20px; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; }
+    .btn-clear { font-size: 12px; background: none; border: 1px solid #e94560; color: #e94560; padding: 3px 10px; border-radius: 6px; cursor: pointer; flex: none; }
+    .btn-clear:hover { background: #e94560; color: white; }
+
+    #history { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; }
+    .history-item { background: #0f3460; border-radius: 8px; padding: 10px 14px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; cursor: pointer; transition: 0.2s; }
+    .history-item:hover { background: #1a4a80; }
+    .history-text { flex: 1; word-break: break-word; color: #ddd; }
+    .history-meta { font-size: 12px; color: #e94560; white-space: nowrap; }
+    .no-history { color: #555; font-size: 14px; text-align: center; padding: 10px 0; }
+
+    .copied-msg { color: #4caf50; font-size: 13px; margin-top: 6px; text-align: center; display: none; }
+  </style>
+</head>
+<body>
+  <h1>Word Repeater</h1>
+  <div class="card">
+    <input id="word" placeholder="Enter a word or phrase" />
+    <input id="times" type="number" placeholder="How many times?" min="1" />
+    <div class="btn-row">
+      <button class="btn-repeat" onclick="repeatWord()">Repeat</button>
+    </div>
+
+    <div id="output"></div>
+    <div class="copied-msg" id="copied-msg">✓ Copied!</div>
+
+    <div class="btn-row" id="action-btns" style="display:none; margin-top:10px;">
+      <button class="btn-copy" onclick="copyOutput()">Copy</button>
+      <button class="btn-back" onclick="goBack()">↩ Repeat Another</button>
+    </div>
+
+    <div class="section-title">
+      History
+      <button class="btn-clear" onclick="clearHistory()">Clear All</button>
+    </div>
+    <div id="history"><div class="no-history">No history yet.</div></div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "word_repeater_history";
+    let history = loadHistory();
+    renderHistory();
+
+    function loadHistory() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveHistory() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    }
+
+    function repeatWord() {
+      const word = document.getElementById("word").value.trim();
+      const times = parseInt(document.getElementById("times").value);
+      if (!word || isNaN(times) || times < 1) {
+        alert("Please enter a valid word and number.");
+        return;
+      }
+      const result = (word + " ").repeat(times).trim();
+      showOutput(result);
+      history.unshift({ word, times, result });
+      saveHistory();
+      renderHistory();
+    }
+
+    function showOutput(result) {
+      const output = document.getElementById("output");
+      output.textContent = result;
+      output.style.display = "block";
+      document.getElementById("action-btns").style.display = "flex";
+      document.getElementById("copied-msg").style.display = "none";
+    }
+
+    function copyOutput() {
+      const text = document.getElementById("output").textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const msg = document.getElementById("copied-msg");
+        msg.style.display = "block";
+        setTimeout(() => msg.style.display = "none", 2000);
+      });
+    }
+
+    function goBack() {
+      document.getElementById("word").value = "";
+      document.getElementById("times").value = "";
+      document.getElementById("output").style.display = "none";
+      document.getElementById("action-btns").style.display = "none";
+      document.getElementById("copied-msg").style.display = "none";
+      document.getElementById("word").focus();
+    }
+
+    function loadHistoryItem(i) {
+      const h = history[i];
+      document.getElementById("word").value = h.word;
+      document.getElementById("times").value = h.times;
+      showOutput(h.result);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function clearHistory() {
+      if (!confirm("Clear all history?")) return;
+      history = [];
+      saveHistory();
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const container = document.getElementById("history");
+      if (history.length === 0) {
+        container.innerHTML = '<div class="no-history">No history yet.</div>';
+        return;
+      }
+      container.innerHTML = history.map((h, i) => `
+        <div class="history-item" onclick="loadHistoryItem(${i})">
+          <span class="history-text">"${h.word}"</span>
+          <span class="history-meta">×${h.times}</span>
+        </div>
+      `).join("");
+    }
+  </script>
+</body>
+</html>
