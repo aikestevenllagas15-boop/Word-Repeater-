@@ -64,7 +64,6 @@
     let history = loadHistory();
     renderHistory();
 
-    // PWA Install
     let deferredPrompt;
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();
@@ -81,7 +80,6 @@
       }
     }
 
-    // Service Worker
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("sw.js");
     }
