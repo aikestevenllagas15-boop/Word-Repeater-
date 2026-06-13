@@ -1,0 +1,21 @@
+{
+  "name": "Word Repeater",
+  "short_name": "Repeater",
+  "description": "Type a word and repeat it instantly.",
+  "start_url": "/Word-Repeater-/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#e94560",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
